@@ -39,7 +39,7 @@ install:
 - docker images
 - export PATH=$(pwd)/bin:$PATH
 - cd ../
-- git clone https://github.com/kbaseapps/ExpressionUtils.git
+- git clone https://github.com/arfathpasha/ExpressionUtils.git
 - cd ExpressionUtils
 - kb-sdk test || true
 - sed -i "s/test_token=/test_token=$TEST_TOKEN/" test_local/test.cfg
