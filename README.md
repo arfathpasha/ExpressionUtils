@@ -1,3 +1,6 @@
+Build status:<br>
+master: [![Coverage Status](https://coveralls.io/repos/github/arfathpasha/ExpressionUtils/badge.svg?branch=master)](https://coveralls.io/github/arfathpasha/ExpressionUtils?branch=master)<br>
+master:  [![Build Status](https://travis-ci.org/arfathpasha/ExpressionUtils.svg?branch=master)](https://travis-ci.org/arfathpasha/ExpressionUtils)<br>
 
 # ExpressionUtils
 ---

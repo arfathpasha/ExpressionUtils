@@ -45,8 +45,8 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = "https://github.com/kbaseapps/ExpressionUtils.git"
-    GIT_COMMIT_HASH = "c2e7e1cdb3ab30d4016cacd58c6b9c86e524d0b8"
+    GIT_URL = "git@github.com:arfathpasha/ExpressionUtils.git"
+    GIT_COMMIT_HASH = "a4592effdd4a8dd187e4673ca453535a1da3a1c3"
 
     #BEGIN_CLASS_HEADER
 

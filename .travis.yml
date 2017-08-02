@@ -1,6 +1,68 @@
-language: 
+language: python
+
+python:
+- '2.7'
+
+sudo: required
+
+services:
+- docker
+
+notifications:
+  email:
+    recipients:
+    - arfathpasha@gmail.com
+    on_success: never
+    on_failure: always
+
 env:
+  global:
+    secure: QajP33x9WZcEBPjxn3PoO2naVxHPCo+e1egLvzHb/lmFqOTfOUzC5I0FMqC6VL77anrj+Otfg7O7o2jWNCylcpQInFRojazKo8dZclfowL0xvgbVuWrRDbV8QnaAsjjI6O39F0bwsdcLjjA4+ArkAVEJASEH0Sp0aoVuGn6xFTiRhmo9Bxzn78lC6bbQl9tJMAly9qsCf/EM/ZRM0PAFnJEXmC0JE2tTAi8WKPhq3RvnSw+Klu8cduqGvJ33WbeD1Z0vLTnieOaRBHXu5/m6nnGb3E6VMVE1QUtHLUSW1FheH0F6VtvVGTABO+DQkgvABNZRS9UYUf86dXQ2locGIIhWggOFHxtbZLa9od3pb33Q2wm3gmZmv14K4TM2XIO76H3y0A8KG9LvdUpoQb90O/bnA8zo76+HmXD7fHr6Z4mULUIBkMeG7Ddu9Tn4gvMTB8oO+vHq5+U4A7/FAY+FDbq5vUpGdc7IOvBQr9o+2i98bTat2zI+qR6JE0XrhIQk6blI8Xm3WX4rxT1JcTLxUT0GXAWnNSxnTX8RPkqW4JpbL+/mngehhY3JvNmpZtRZjRzJ6Lb58pE80+RUOaQSRcivxp9/iqGJwnlrbmyf3JlxT5DMnbaXMjDK854UCLq/TBR3Uwb44HDGd75Jp+boDWK1IL4AmdXEyc64CXTq6L8=
+
+branches:
+  only:
+  - master
+
 before_install:
+- docker version
+- python --version
+- javac -version
+- java -version
+
 install:
+- pip install coveralls
+- git clone https://github.com/kbase/jars
+- git clone https://github.com/kbase/kb_sdk
+- cd kb_sdk
+- make
+- make sdkbase
+- docker images
+- export PATH=$(pwd)/bin:$PATH
+- cd ../
+- git clone https://github.com/kbaseapps/ExpressionUtils.git
+- cd ExpressionUtils
+- kb-sdk test || true
+- sed -i "s/test_token=/test_token=$TEST_TOKEN/" test_local/test.cfg
+- sed -i 's\https://appdev.kbase.us/services\https://ci.kbase.us/services\' test_local/test.cfg
+- sed -i 's\https://appdev.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\https://ci.kbase.us/services/auth/api/legacy/KBase/Sessions/Login\'
+  test_local/test.cfg
+- sed -i 's/$(id -u)/0:0/' test_local/run_tests.sh
+- pwd=$(pwd)
+- echo "#!/bin/bash" >> test_local/run_subjob.sh
+- echo -e "$pwd/test_local/run_docker.sh run --rm --user 0:0 -v $pwd/test_local/subjobs/\$1/workdir:/kb/module/work
+  -v $pwd/test_local/workdir/tmp:/kb/module/work/tmp \$4 -e \"SDK_CALLBACK_URL=\$3\"
+  \$2 async" >> test_local/run_subjob.sh
+- cat test_local/run_subjob.sh
+
 script:
-after_script:
+- kb-sdk test
+
+after_success:
+- cp test_local/workdir/.coverage .
+- sudo mkdir -p /kb/module/lib/
+- sudo cp -R test_local/workdir/kb/module/lib/ExpressionUtils/kb/module/lib/
+- pwd
+- ls -l /kb/module/lib/ExpressionUtils
+- cat .coverage
+- coverage report -m
+- coveralls
