@@ -245,14 +245,29 @@ class ExpressionUtilsTest(unittest.TestCase):
                                   'ref': assembly_ref}
 
     @classmethod
-    def upload_alignment(cls, wsobjname, file_name):
+    def upload_alignment_with_genome(cls, wsobjname, file_name):
         align_path = os.path.join(cls.scratch, file_name)
         shutil.copy(os.path.join('data', file_name), align_path)
         align_info = cls.rau.upload_alignment({'file_path': align_path,
                                                'destination_ref': cls.getWsName() + '/' + wsobjname,
                                                'read_library_ref': cls.getWsName() + '/test_reads',
                                                'condition': 'test_condition',
-                                               'assembly_or_genome_ref': cls.getWsName()+'/test_genome'
+                                               #'assembly_or_genome_ref': cls.getWsName()+'/test_genome'
+                                               'assembly_or_genome_ref': cls.getWsName() + '/test_genome'
+                                               })
+        cls.staged[wsobjname] = {'info': align_info,
+                                 'ref': align_info['obj_ref']}
+
+    @classmethod
+    def upload_alignment_with_assembly(cls, wsobjname, file_name):
+        align_path = os.path.join(cls.scratch, file_name)
+        shutil.copy(os.path.join('data', file_name), align_path)
+        align_info = cls.rau.upload_alignment({'file_path': align_path,
+                                               'destination_ref': cls.getWsName() + '/' + wsobjname,
+                                               'read_library_ref': cls.getWsName() + '/test_reads',
+                                               'condition': 'test_condition',
+                                               # 'assembly_or_genome_ref': cls.getWsName()+'/test_genome'
+                                               'assembly_or_genome_ref': cls.getWsName() + '/test_assembly'
                                                })
         cls.staged[wsobjname] = {'info': align_info,
                                  'ref': align_info['obj_ref']}
@@ -335,30 +350,27 @@ class ExpressionUtilsTest(unittest.TestCase):
         cls.upload_empty_data('empty')
 
         cls.upload_assembly('test_assembly', 'test.fna')
-        cls.upload_alignment('test_alignment', 'accepted_hits_sorted.bam')
+        cls.upload_alignment_with_genome('test_alignment_genome', 'accepted_hits_sorted.bam')
+        cls.upload_alignment_with_assembly('test_alignment_assembly', 'accepted_hits_sorted.bam')
 
         cls.more_upload_stringtie_params = {
-                                  'tool_used': 'stringtie',
-                                  'tool_version': 'stringtie_version',
-                                  'annotation_ref': annotation_ref,
-                                  'alignment_ref': cls.getWsName() + '/test_alignment'
+                                  'alignment_ref': cls.getWsName() + '/test_alignment_genome'
                                  }
         cls.more_upload_cufflinks_params = {
-            'tool_used': 'cufflinks',
-            'tool_version': 'cufflinks_version',
-            'annotation_ref': annotation_ref,
-            'alignment_ref': cls.getWsName() + '/test_alignment'
+                                'alignment_ref': cls.getWsName() + '/test_alignment_genome'
         }
-        stringtie_params = dictmerge({'destination_ref': cls.getWsName() + '/test_stringtie_expression',
+        cls.stringtie_params = {'destination_ref': cls.getWsName() + '/test_stringtie_expression',
                             'source_dir': cls.upload_stringtie_dir_path,
-                            }, cls.more_upload_stringtie_params)
+                            'alignment_ref': cls.getWsName() + '/test_alignment_genome'
+                            }
 
-        cufflinks_params = dictmerge({'destination_ref': cls.getWsName() + '/test_cufflinks_expression',
+        cls.cufflinks_params = {'destination_ref': cls.getWsName() + '/test_cufflinks_expression',
                             'source_dir': cls.upload_cufflinks_dir_path,
-                            }, cls.more_upload_cufflinks_params)
+                            'alignment_ref': cls.getWsName() + '/test_alignment_genome'
+                            }
 
-        cls.getImpl().upload_expression(cls.ctx, stringtie_params)
-        cls.getImpl().upload_expression(cls.ctx, cufflinks_params)
+        cls.getImpl().upload_expression(cls.ctx, cls.stringtie_params)
+        cls.getImpl().upload_expression(cls.ctx, cls.cufflinks_params)
 
     @classmethod
     def getSize(cls, filename):
@@ -378,6 +390,9 @@ class ExpressionUtilsTest(unittest.TestCase):
 
     def upload_expression_success(self, params, expected_zip):
 
+        test_name = inspect.stack()[1][3]
+        print('\n**** starting expected upload expression success test: ' + test_name + ' ***\n')
+
         obj = self.dfu.get_objects(
             {'object_refs': [params.get('destination_ref')]})['data'][0]
 
@@ -387,7 +402,7 @@ class ExpressionUtilsTest(unittest.TestCase):
 
         self.assertEqual(obj['info'][2].startswith('KBaseRNASeq.RNASeqExpression'), True)
         d = obj['data']
-        self.assertEqual(d['genome_id'], self.getWsName() + '/test_genome')
+        #self.assertEqual(d['genome_ref'], self.getWsName() + '/test_genome')
         self.assertEqual(d['condition'], 'test_condition')
         self.assertEqual(d['mapped_rnaseq_alignment'].keys()[0],
                          self.getWsName() + '/test_reads')
@@ -414,7 +429,7 @@ class ExpressionUtilsTest(unittest.TestCase):
     def download_expression_success(self, obj_name, upload_dir_path):
 
         test_name = inspect.stack()[1][3]
-        print('\n**** starting expected downlaod success test: ' + test_name + ' ***\n')
+        print('\n**** starting expected download expression success test: ' + test_name + ' ***\n')
 
         params = {'source_ref': self.getWsName() + '/' + obj_name}
 
@@ -427,26 +442,27 @@ class ExpressionUtilsTest(unittest.TestCase):
 
     def test_upload_stringtie_expression_success(self):
 
-        params = dictmerge({'destination_ref': self.getWsName() + '/test_stringtie_expression',
-                            'source_dir': self.upload_stringtie_dir_path,
-                            }, self.more_upload_stringtie_params)
+        self.upload_expression_success(self.stringtie_params, self.uploaded_stringtie_zip)
+
+    def test_upload_stringtie_assembly_expression_success(self):
+
+        params = {'destination_ref': self.getWsName() + '/test_stringtie_expression',
+                  'source_dir': self.upload_stringtie_dir_path,
+                  'alignment_ref': self.getWsName() + '/test_alignment_assembly',
+                  'genome_ref': self.getWsName() + '/test_genome'}
         self.upload_expression_success(params, self.uploaded_stringtie_zip)
 
     def test_upload_cufflinks_expression_success(self):
-
-        params = dictmerge({'destination_ref': self.getWsName() + '/test_cufflinks_expression',
-                            'source_dir': self.upload_cufflinks_dir_path,
-                            }, self.more_upload_cufflinks_params)
-        self.upload_expression_success(params, self.uploaded_cufflinks_zip)
-
-
+        self.upload_expression_success(self.cufflinks_params, self.uploaded_cufflinks_zip)
+    
     def test_download_stringtie_expression_success(self):
         self.download_expression_success('test_stringtie_expression', self.upload_stringtie_dir_path)
 
     def test_download_cufflinks_expression_success(self):
         self.download_expression_success('test_cufflinks_expression', self.upload_cufflinks_dir_path)
 
-    def export_expression_success(self, obj_name, export_params, upload_dir, uploaded_zip):
+    def export_expression_success(self, obj_name, export_params,
+                                  upload_dir, upload_dir_path, uploaded_zip):
 
         test_name = inspect.stack()[1][3]
         print('\n*** starting expected export pass test: ' + test_name + ' **')
@@ -473,15 +489,15 @@ class ExpressionUtilsTest(unittest.TestCase):
         with ZipFile(export_file_path) as z:
             z.extractall(export_dir_path)
 
-        self.check_files(export_dir_path, self.upload_stringtie_dir_path)
+        self.check_files(export_dir_path, upload_dir_path)
 
-    '''
     def test_export_stringtie_expression_success(self):
 
         opt_params = {}
         self.export_expression_success('test_stringtie_expression',
                                        opt_params,
                                        self.upload_stringtie_dir,
+                                       self.upload_stringtie_dir_path,
                                        self.uploaded_stringtie_zip)
 
     def test_export_cufflinks_expression_success(self):
@@ -490,8 +506,8 @@ class ExpressionUtilsTest(unittest.TestCase):
         self.export_expression_success('test_cufflinks_expression',
                                        opt_params,
                                        self.upload_cufflinks_dir,
+                                       self.upload_cufflinks_dir_path,
                                        self.uploaded_cufflinks_zip)
-    '''
 
     def fail_upload_expression(self, params, error, exception=ValueError, do_startswith=False):
 
@@ -565,4 +581,12 @@ class ExpressionUtilsTest(unittest.TestCase):
                       }, self.more_upload_stringtie_params),
             'No workspace with name 1s exists')
 
+    def test_upload_fail_no_genome_ref(self):
+        self.fail_upload_expression(
+                        {
+                        'destination_ref': self.getWsName() + '/test_stringtie_expression',
+                        'source_dir': self.upload_stringtie_dir_path,
+                        'alignment_ref': self.getWsName() + '/test_alignment_assembly'
+                        },
+            'Alignment object does not contain genome_ref; "genome_ref" parameter is required')
 

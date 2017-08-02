@@ -43,19 +43,16 @@ class ExpressionUtils(object):
            ws_name_or_id is the workspace name or id and obj_name_or_id is
            the object name or id string   source_dir             -  
            directory with the files to be uploaded string   alignment_ref    
-           -   alignment workspace object reference string   tool_used       
-           -   stringtie or cufflinks string   tool_version           -  
-           version of the tool used *) -> structure: parameter
-           "destination_ref" of String, parameter "source_dir" of String,
-           parameter "alignment_ref" of String, parameter "tool_used" of
-           String, parameter "tool_version" of String, parameter
-           "annotation_ref" of String, parameter "bam_file_path" of String,
-           parameter "data_quality_level" of Long, parameter
-           "original_median" of Double, parameter "description" of String,
-           parameter "platform" of String, parameter "source" of String,
-           parameter "external_source_date" of String, parameter
-           "processing_comments" of String, parameter "tool_opts" of mapping
-           from String to String
+           -   alignment workspace object reference *) -> structure:
+           parameter "destination_ref" of String, parameter "source_dir" of
+           String, parameter "alignment_ref" of String, parameter
+           "genome_ref" of String, parameter "annotation_id" of String,
+           parameter "bam_file_path" of String, parameter
+           "data_quality_level" of Long, parameter "original_median" of
+           Double, parameter "description" of String, parameter "platform" of
+           String, parameter "source" of String, parameter
+           "external_source_date" of String, parameter "processing_comments"
+           of String
         :returns: instance of type "UploadExpressionOutput" (*     Output
            from upload expression    *) -> structure: parameter "obj_ref" of
            String
@@ -96,6 +93,21 @@ class ExpressionUtils(object):
         """
         return self._client.call_method(
             'ExpressionUtils.export_expression',
+            [params], self._service_ver, context)
+
+    def get_expressionMatrix(self, params, context=None):
+        """
+        :param params: instance of type "getExprMatrixParams" (* Following
+           are the required input parameters to get Expression Matrix *) ->
+           structure: parameter "workspace_name" of String, parameter
+           "output_obj_name" of String, parameter "expressionset_ref" of
+           String
+        :returns: instance of type "getExprMatrixOutput" -> structure:
+           parameter "exprMatrix_FPKM_ref" of String, parameter
+           "exprMatrix_TPM_ref" of String
+        """
+        return self._client.call_method(
+            'ExpressionUtils.get_expressionMatrix',
             [params], self._service_ver, context)
 
     def status(self, context=None):

@@ -29,8 +29,6 @@ module ExpressionUtils {
                                             
         string   source_dir             -   directory with the files to be uploaded
         string   alignment_ref          -   alignment workspace object reference
-        string   tool_used              -   stringtie or cufflinks
-        string   tool_version           -   version of the tool used
     **/
 
     typedef structure {
@@ -38,13 +36,10 @@ module ExpressionUtils {
         string   destination_ref;
         string   source_dir;
         string   alignment_ref;
-        string   tool_used;
-        string   tool_version;
 
-        string   annotation_ref;        /*  Optional  - If this field is given then it is used as annotation ref.
-                                            This field is required if alignment object contains assembly ref.
-                                            If the alignment object contains genome ref instead and this field is
-                                            not provided, then the annotation is derived from the genome object */
+        string   genome_ref;            /*  Optional  - if alignment_ref does not contain a genome_ref
+                                            this input needs to be given   */
+        string   annotation_id;         /*  Optional  - annotation ref of the genome object */
 
         string   bam_file_path;         /*  Optional  - Used to create ctab files if they are absent in the
                                             source_dir. If this field is not provided for ctab files generation,
@@ -58,10 +53,8 @@ module ExpressionUtils {
         string   source;                /*  Optional */
         string   external_source_date;	/*  Optional */
         string   processing_comments;	/*  Optional */
-        mapping<string opt_name, string opt_value> tool_opts;  /* Optional */
 
     }  UploadExpressionParams;
-
 
     /**     Output from upload expression    **/
 
@@ -70,7 +63,6 @@ module ExpressionUtils {
      }  UploadExpressionOutput;
 
     /**  Uploads the expression  **/
-
 
     funcdef  upload_expression(UploadExpressionParams params)
                                    returns (UploadExpressionOutput)
@@ -82,7 +74,6 @@ module ExpressionUtils {
                                     where ws_name_or_id is the workspace name or id
                                     and obj_name_or_id is the object name or id
     **/
-
 
     typedef structure {
         string      source_ref;
@@ -110,16 +101,43 @@ module ExpressionUtils {
      **/
 
     typedef structure {
-        string source_ref;   /* workspace object reference */
+        string  source_ref;   /* workspace object reference */
     } ExportParams;
 
     typedef structure {
-        string shock_id;     /* shock id of file to export */
+        string  shock_id;     /* shock id of file to export */
      } ExportOutput;
-    /** Wrapper function for use by in-narrative downloaders to download expressions from shock **/
 
+    /** Wrapper function for use by in-narrative downloaders to download expressions from shock **/
 
     funcdef export_expression(ExportParams params)
                      returns (ExportOutput output)
                      authentication required;
-    };
+
+    /*
+        Get Expression Matrix from Expression Set input
+    */
+
+    /**
+        Following are the required input parameters to get Expression Matrix
+    **/
+
+    typedef structure {
+
+        string      workspace_name;
+        string      output_obj_name;
+        string      expressionset_ref;
+
+    } getExprMatrixParams;
+
+    typedef structure {
+
+        string   exprMatrix_FPKM_ref;
+        string   exprMatrix_TPM_ref;
+
+    } getExprMatrixOutput;
+
+    funcdef  get_expressionMatrix(getExprMatrixParams params)
+                                   returns (getExprMatrixOutput)
+                                   authentication required;
+};

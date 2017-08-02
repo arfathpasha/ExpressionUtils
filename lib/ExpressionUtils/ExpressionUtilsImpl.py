@@ -17,8 +17,8 @@ from Workspace.WorkspaceClient import Workspace
 from Workspace.baseclient import ServerError as WorkspaceError
 from ReadsAlignmentUtils.ReadsAlignmentUtilsClient import ReadsAlignmentUtils
 from core.expression_utils import ExpressionUtils as Expression_Utils
-from core.gff_utils import GFFUtils
 from core.table_maker import TableMaker
+from core.exprMatrix_utils import ExprMatrixUtils
 
 #END_HEADER
 
@@ -44,9 +44,9 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.1"
-    GIT_URL = "git@github.com:arfathpasha/ExpressionUtils.git"
-    GIT_COMMIT_HASH = "a4592effdd4a8dd187e4673ca453535a1da3a1c3"
+    VERSION = "0.0.2"
+    GIT_URL = "https://github.com/kbaseapps/ExpressionUtils.git"
+    GIT_COMMIT_HASH = "6875c099bdf405e327d5aa5fb15a6909becced18"
 
     #BEGIN_CLASS_HEADER
 
@@ -54,12 +54,10 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
     PARAM_IN_SRC_REF = 'source_ref'
     PARAM_IN_DST_REF = 'destination_ref'
     PARAM_IN_ALIGNMENT_REF = 'alignment_ref'
-    PARAM_IN_TOOL_USED = 'tool_used'
-    PARAM_IN_TOOL_VER = 'tool_version'
 
-    PARAM_IN_ANNOTATION_REF = 'annotation_ref'
+    PARAM_IN_GENOME_REF = 'genome_ref'
+    PARAM_IN_ANNOTATION_ID = 'annotation_id'
     PARAM_IN_BAM_FILE_PATH = 'bam_file_path'
-    PARAM_IN_TOOL_OPTS = 'tool_opts'
     PARAM_IN_DESCRIPTION = 'description'
     PARAM_IN_DATA_QUAL_LEVEL = 'data_quality_level'
     PARAM_IN_PROC_COMMENTS = 'processing_comments'
@@ -68,8 +66,6 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
     PARAM_IN_ORIG_MEDIAN = 'original_median'
     PARAM_IN_EXT_SRC_DATE = 'external_source_date'
     PARAM_IN_SRC = 'source'
-
-    PARAM_IN_READ_LIB_REF = 'read_lib_ref'
 
     def _check_required_param(self, in_params, param_list):
         """
@@ -113,9 +109,7 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
         """
         self._check_required_param(params, [self.PARAM_IN_DST_REF,
                                             self.PARAM_IN_SRC_DIR,
-                                            self.PARAM_IN_ALIGNMENT_REF,
-                                            self.PARAM_IN_TOOL_USED,
-                                            self.PARAM_IN_TOOL_VER,
+                                            self.PARAM_IN_ALIGNMENT_REF
                                             ])
 
         ws_name_id, obj_name_id = self._proc_ws_obj_params(ctx, params)
@@ -141,37 +135,33 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
             raise
         return info
 
-    def _get_annotation(self, params, genome_or_assembly_ref, workspace):
+    def _get_genome_ref(self, assembly_or_genome_ref, params):
 
-        if self.PARAM_IN_ANNOTATION_REF in params and \
-           params[self.PARAM_IN_ANNOTATION_REF] is not None:
-            return params[self.PARAM_IN_ANNOTATION_REF]
-
-        obj_type = self._get_ws_info(genome_or_assembly_ref)[2]
+        obj_type = self._get_ws_info(assembly_or_genome_ref)[2]
         if obj_type.startswith('KBaseGenomes.Genome'):
-            annotation_ref = self.gff_utils.create_gtf_annotation_from_genome(genome_or_assembly_ref, workspace)
-        elif obj_type.startswith('KBaseGenomeAnnotations.Assembly') or \
-                obj_type.startswith('KBaseGenomes.ContigSet'):
-            raise ValueError((self.PARAM_IN_ANNOTATION_REF + ' parameter is required'))
+            return assembly_or_genome_ref
+        elif self.PARAM_IN_GENOME_REF in params and params[self.PARAM_IN_GENOME_REF] is not None:
+            return params[self.PARAM_IN_GENOME_REF]
         else:
-            raise ValueError('Parameter type should be assembly or genome ref and not ' + obj_type)
-        return annotation_ref
+            raise ValueError('Alignment object does not contain genome_ref; "{}" parameter is required'.
+                             format(self.PARAM_IN_GENOME_REF))
 
     def _get_expression_levels(self, source_dir):
 
-        fpkm_file = os.path.join(source_dir, 'genes.fpkm_tracking')
+        fpkm_file_path = os.path.join(source_dir, 'genes.fpkm_tracking')
 
-        if not os.path.isfile(fpkm_file):
-            raise ValueError('{0} file is required in {1}'.format(fpkm_file, source_dir))
+        if not os.path.isfile(fpkm_file_path):
+            raise ValueError('{} file is required'.format(fpkm_file_path))
 
-        return self.expression_utils.get_expression_levels(os.path.join(source_dir, fpkm_file))
+        self.__LOGGER.info('Generating expression levels from {}'. format(fpkm_file_path))
+        return self.expression_utils.get_expression_levels(fpkm_file_path)
 
     def _gen_ctab_files(self, params, alignment_ref):
 
         source_dir = params.get(self.PARAM_IN_SRC_DIR)
         if len(glob.glob(source_dir + '/*.ctab')) < 5:
 
-            print(' =======  Generating ctab files ==========')
+            self.__LOGGER.info(' =======  Generating ctab files ==========')
             gtf_file = os.path.join(source_dir, 'transcripts.gtf')
             if not os.path.isfile(gtf_file):
                 raise ValueError("{} file is required to generate ctab files, found missing".
@@ -181,7 +171,7 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
                params[self.PARAM_IN_BAM_FILE_PATH] is not None:
                 bam_file_path = params[self.PARAM_IN_BAM_FILE_PATH]
             else:
-                print('Downloading bam file from alignment object')
+                self.__LOGGER.info('Downloading bam file from alignment object')
                 rau = ReadsAlignmentUtils(self.callback_url)
                 alignment_retVal = rau.download_alignment({'source_ref': alignment_ref})
                 alignment_dir = alignment_retVal.get('destination_dir')
@@ -224,8 +214,8 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
         self.ws_url = config['workspace-url']
         self.expression_utils = Expression_Utils(config)
         self.dfu = DataFileUtil(self.callback_url)
-        self.gff_utils = GFFUtils(config, self.__LOGGER)
         self.table_maker = TableMaker(config, self.__LOGGER)
+        self.expr_matrix_utils = ExprMatrixUtils(config, self.__LOGGER)
         #END_CONSTRUCTOR
         pass
 
@@ -240,19 +230,16 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
            ws_name_or_id is the workspace name or id and obj_name_or_id is
            the object name or id string   source_dir             -  
            directory with the files to be uploaded string   alignment_ref    
-           -   alignment workspace object reference string   tool_used       
-           -   stringtie or cufflinks string   tool_version           -  
-           version of the tool used *) -> structure: parameter
-           "destination_ref" of String, parameter "source_dir" of String,
-           parameter "alignment_ref" of String, parameter "tool_used" of
-           String, parameter "tool_version" of String, parameter
-           "annotation_ref" of String, parameter "bam_file_path" of String,
-           parameter "data_quality_level" of Long, parameter
-           "original_median" of Double, parameter "description" of String,
-           parameter "platform" of String, parameter "source" of String,
-           parameter "external_source_date" of String, parameter
-           "processing_comments" of String, parameter "tool_opts" of mapping
-           from String to String
+           -   alignment workspace object reference *) -> structure:
+           parameter "destination_ref" of String, parameter "source_dir" of
+           String, parameter "alignment_ref" of String, parameter
+           "genome_ref" of String, parameter "annotation_id" of String,
+           parameter "bam_file_path" of String, parameter
+           "data_quality_level" of Long, parameter "original_median" of
+           Double, parameter "description" of String, parameter "platform" of
+           String, parameter "source" of String, parameter
+           "external_source_date" of String, parameter "processing_comments"
+           of String
         :returns: instance of type "UploadExpressionOutput" (*     Output
            from upload expression    *) -> structure: parameter "obj_ref" of
            String
@@ -275,7 +262,8 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
 
         alignment = alignment_obj['data']
         assembly_or_genome_ref = alignment['genome_id']
-        annotation_ref = self._get_annotation(params, assembly_or_genome_ref, ws_name_id)
+
+        genome_ref = self._get_genome_ref(assembly_or_genome_ref, params)
 
         expression_levels, tpm_expression_levels = self._get_expression_levels(source_dir)
 
@@ -296,20 +284,16 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
         file_handle = uploaded_file['handle']
         file_size = uploaded_file['size']
 
-        expression_data = {'id': obj_name_id,
-                           'type': 'RNA-KBaseRNASeq.RNASeqExpression',
+        expression_data = {
                            'numerical_interpretation': 'FPKM',
-                           'genome_id': assembly_or_genome_ref,
-                           'annotation_id': annotation_ref,
+                           'genome_id': genome_ref,
                            'mapped_rnaseq_alignment': {alignment['read_sample_id']: alignment_ref},
                            'condition': alignment['condition'],
                            'file': file_handle,
                            'expression_levels': expression_levels,
                            'tpm_expression_levels': tpm_expression_levels
                            }
-        additional_params = [self.PARAM_IN_TOOL_USED,
-                             self.PARAM_IN_TOOL_VER,
-                             self.PARAM_IN_TOOL_OPTS,
+        additional_params = [self.PARAM_IN_ANNOTATION_ID,
                              self.PARAM_IN_DESCRIPTION,
                              self.PARAM_IN_DATA_QUAL_LEVEL,
                              self.PARAM_IN_PLATFORM,
@@ -336,7 +320,7 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
 
         returnVal = {'obj_ref': str(res[6]) + '/' + str(res[0]) + '/' + str(res[4])}
 
-        print('Uploaded object: ')
+        self.__LOGGER.info('Uploaded object: ')
         print(returnVal)
         #END upload_expression
 
@@ -442,6 +426,33 @@ workspace object. Once uploaded, the expression files can be downloaded onto an 
                              'output is not type dict as required.')
         # return the results
         return [output]
+
+    def get_expressionMatrix(self, ctx, params):
+        """
+        :param params: instance of type "getExprMatrixParams" (* Following
+           are the required input parameters to get Expression Matrix *) ->
+           structure: parameter "workspace_name" of String, parameter
+           "output_obj_name" of String, parameter "expressionset_ref" of
+           String
+        :returns: instance of type "getExprMatrixOutput" -> structure:
+           parameter "exprMatrix_FPKM_ref" of String, parameter
+           "exprMatrix_TPM_ref" of String
+        """
+        # ctx is the context object
+        # return variables are: returnVal
+        #BEGIN get_expressionMatrix
+        fpkm_ref, tpm_ref = self.expr_matrix_utils.get_expression_matrix(params)
+
+        returnVal = {'exprMatrix_FPKM_ref': fpkm_ref,
+                     'exprMatrix_TPM_ref': tpm_ref}
+        #END get_expressionMatrix
+
+        # At some point might do deeper type checking...
+        if not isinstance(returnVal, dict):
+            raise ValueError('Method get_expressionMatrix return value ' +
+                             'returnVal is not type dict as required.')
+        # return the results
+        return [returnVal]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",

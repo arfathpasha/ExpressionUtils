@@ -131,9 +131,8 @@ UploadExpressionParams is a reference to a hash where the following keys are def
 	destination_ref has a value which is a string
 	source_dir has a value which is a string
 	alignment_ref has a value which is a string
-	tool_used has a value which is a string
-	tool_version has a value which is a string
-	annotation_ref has a value which is a string
+	genome_ref has a value which is a string
+	annotation_id has a value which is a string
 	bam_file_path has a value which is a string
 	data_quality_level has a value which is an int
 	original_median has a value which is a float
@@ -142,7 +141,6 @@ UploadExpressionParams is a reference to a hash where the following keys are def
 	source has a value which is a string
 	external_source_date has a value which is a string
 	processing_comments has a value which is a string
-	tool_opts has a value which is a reference to a hash where the key is a string and the value is a string
 UploadExpressionOutput is a reference to a hash where the following keys are defined:
 	obj_ref has a value which is a string
 
@@ -158,9 +156,8 @@ UploadExpressionParams is a reference to a hash where the following keys are def
 	destination_ref has a value which is a string
 	source_dir has a value which is a string
 	alignment_ref has a value which is a string
-	tool_used has a value which is a string
-	tool_version has a value which is a string
-	annotation_ref has a value which is a string
+	genome_ref has a value which is a string
+	annotation_id has a value which is a string
 	bam_file_path has a value which is a string
 	data_quality_level has a value which is an int
 	original_median has a value which is a float
@@ -169,7 +166,6 @@ UploadExpressionParams is a reference to a hash where the following keys are def
 	source has a value which is a string
 	external_source_date has a value which is a string
 	processing_comments has a value which is a string
-	tool_opts has a value which is a reference to a hash where the key is a string and the value is a string
 UploadExpressionOutput is a reference to a hash where the following keys are defined:
 	obj_ref has a value which is a string
 
@@ -410,6 +406,102 @@ Wrapper function for use by in-narrative downloaders to download expressions fro
     }
 }
  
+
+
+=head2 get_expressionMatrix
+
+  $return = $obj->get_expressionMatrix($params)
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$params is an ExpressionUtils.getExprMatrixParams
+$return is an ExpressionUtils.getExprMatrixOutput
+getExprMatrixParams is a reference to a hash where the following keys are defined:
+	workspace_name has a value which is a string
+	output_obj_name has a value which is a string
+	expressionset_ref has a value which is a string
+getExprMatrixOutput is a reference to a hash where the following keys are defined:
+	exprMatrix_FPKM_ref has a value which is a string
+	exprMatrix_TPM_ref has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+$params is an ExpressionUtils.getExprMatrixParams
+$return is an ExpressionUtils.getExprMatrixOutput
+getExprMatrixParams is a reference to a hash where the following keys are defined:
+	workspace_name has a value which is a string
+	output_obj_name has a value which is a string
+	expressionset_ref has a value which is a string
+getExprMatrixOutput is a reference to a hash where the following keys are defined:
+	exprMatrix_FPKM_ref has a value which is a string
+	exprMatrix_TPM_ref has a value which is a string
+
+
+=end text
+
+=item Description
+
+
+
+=back
+
+=cut
+
+ sub get_expressionMatrix
+{
+    my($self, @args) = @_;
+
+# Authentication: required
+
+    if ((my $n = @args) != 1)
+    {
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error =>
+							       "Invalid argument count for function get_expressionMatrix (received $n, expecting 1)");
+    }
+    {
+	my($params) = @args;
+
+	my @_bad_arguments;
+        (ref($params) eq 'HASH') or push(@_bad_arguments, "Invalid type for argument 1 \"params\" (value was \"$params\")");
+        if (@_bad_arguments) {
+	    my $msg = "Invalid arguments passed to get_expressionMatrix:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	    Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+								   method_name => 'get_expressionMatrix');
+	}
+    }
+
+    my $url = $self->{url};
+    my $result = $self->{client}->call($url, $self->{headers}, {
+	    method => "ExpressionUtils.get_expressionMatrix",
+	    params => \@args,
+    });
+    if ($result) {
+	if ($result->is_error) {
+	    Bio::KBase::Exceptions::JSONRPC->throw(error => $result->error_message,
+					       code => $result->content->{error}->{code},
+					       method_name => 'get_expressionMatrix',
+					       data => $result->content->{error}->{error} # JSON::RPC::ReturnObject only supports JSONRPC 1.1 or 1.O
+					      );
+	} else {
+	    return wantarray ? @{$result->result} : $result->result->[0];
+	}
+    } else {
+        Bio::KBase::Exceptions::HTTP->throw(error => "Error invoking method get_expressionMatrix",
+					    status_line => $self->{client}->status_line,
+					    method_name => 'get_expressionMatrix',
+				       );
+    }
+}
+ 
   
 sub status
 {
@@ -453,16 +545,16 @@ sub version {
             Bio::KBase::Exceptions::JSONRPC->throw(
                 error => $result->error_message,
                 code => $result->content->{code},
-                method_name => 'export_expression',
+                method_name => 'get_expressionMatrix',
             );
         } else {
             return wantarray ? @{$result->result} : $result->result->[0];
         }
     } else {
         Bio::KBase::Exceptions::HTTP->throw(
-            error => "Error invoking method export_expression",
+            error => "Error invoking method get_expressionMatrix",
             status_line => $self->{client}->status_line,
-            method_name => 'export_expression',
+            method_name => 'get_expressionMatrix',
         );
     }
 }
@@ -548,8 +640,6 @@ an int
                                             
         string   source_dir             -   directory with the files to be uploaded
         string   alignment_ref          -   alignment workspace object reference
-        string   tool_used              -   stringtie or cufflinks
-        string   tool_version           -   version of the tool used
     *
 
 
@@ -562,9 +652,8 @@ a reference to a hash where the following keys are defined:
 destination_ref has a value which is a string
 source_dir has a value which is a string
 alignment_ref has a value which is a string
-tool_used has a value which is a string
-tool_version has a value which is a string
-annotation_ref has a value which is a string
+genome_ref has a value which is a string
+annotation_id has a value which is a string
 bam_file_path has a value which is a string
 data_quality_level has a value which is an int
 original_median has a value which is a float
@@ -573,7 +662,6 @@ platform has a value which is a string
 source has a value which is a string
 external_source_date has a value which is a string
 processing_comments has a value which is a string
-tool_opts has a value which is a reference to a hash where the key is a string and the value is a string
 
 </pre>
 
@@ -585,9 +673,8 @@ a reference to a hash where the following keys are defined:
 destination_ref has a value which is a string
 source_dir has a value which is a string
 alignment_ref has a value which is a string
-tool_used has a value which is a string
-tool_version has a value which is a string
-annotation_ref has a value which is a string
+genome_ref has a value which is a string
+annotation_id has a value which is a string
 bam_file_path has a value which is a string
 data_quality_level has a value which is an int
 original_median has a value which is a float
@@ -596,7 +683,6 @@ platform has a value which is a string
 source has a value which is a string
 external_source_date has a value which is a string
 processing_comments has a value which is a string
-tool_opts has a value which is a reference to a hash where the key is a string and the value is a string
 
 
 =end text
@@ -780,6 +866,79 @@ shock_id has a value which is a string
 
 a reference to a hash where the following keys are defined:
 shock_id has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 getExprMatrixParams
+
+=over 4
+
+
+
+=item Description
+
+*
+Following are the required input parameters to get Expression Matrix
+    *
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+workspace_name has a value which is a string
+output_obj_name has a value which is a string
+expressionset_ref has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+workspace_name has a value which is a string
+output_obj_name has a value which is a string
+expressionset_ref has a value which is a string
+
+
+=end text
+
+=back
+
+
+
+=head2 getExprMatrixOutput
+
+=over 4
+
+
+
+=item Definition
+
+=begin html
+
+<pre>
+a reference to a hash where the following keys are defined:
+exprMatrix_FPKM_ref has a value which is a string
+exprMatrix_TPM_ref has a value which is a string
+
+</pre>
+
+=end html
+
+=begin text
+
+a reference to a hash where the following keys are defined:
+exprMatrix_FPKM_ref has a value which is a string
+exprMatrix_TPM_ref has a value which is a string
 
 
 =end text

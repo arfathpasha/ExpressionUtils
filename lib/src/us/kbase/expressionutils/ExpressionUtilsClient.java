@@ -223,6 +223,23 @@ public class ExpressionUtilsClient {
         return res.get(0);
     }
 
+    /**
+     * <p>Original spec-file function name: get_expressionMatrix</p>
+     * <pre>
+     * </pre>
+     * @param   params   instance of type {@link us.kbase.expressionutils.GetExprMatrixParams GetExprMatrixParams} (original type "getExprMatrixParams")
+     * @return   instance of type {@link us.kbase.expressionutils.GetExprMatrixOutput GetExprMatrixOutput} (original type "getExprMatrixOutput")
+     * @throws IOException if an IO exception occurs
+     * @throws JsonClientException if a JSON RPC exception occurs
+     */
+    public GetExprMatrixOutput getExpressionMatrix(GetExprMatrixParams params, RpcContext... jsonRpcContext) throws IOException, JsonClientException {
+        List<Object> args = new ArrayList<Object>();
+        args.add(params);
+        TypeReference<List<GetExprMatrixOutput>> retType = new TypeReference<List<GetExprMatrixOutput>>() {};
+        List<GetExprMatrixOutput> res = caller.jsonrpcCall("ExpressionUtils.get_expressionMatrix", args, retType, true, true, jsonRpcContext, this.serviceVersion);
+        return res.get(0);
+    }
+
     public Map<String, Object> status(RpcContext... jsonRpcContext) throws IOException, JsonClientException {
         List<Object> args = new ArrayList<Object>();
         TypeReference<List<Map<String, Object>>> retType = new TypeReference<List<Map<String, Object>>>() {};

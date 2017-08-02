@@ -22,8 +22,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  *                                             
  *         string   source_dir             -   directory with the files to be uploaded
  *         string   alignment_ref          -   alignment workspace object reference
- *         string   tool_used              -   stringtie or cufflinks
- *         string   tool_version           -   version of the tool used
  *     *
  * </pre>
  * 
@@ -34,9 +32,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "destination_ref",
     "source_dir",
     "alignment_ref",
-    "tool_used",
-    "tool_version",
-    "annotation_ref",
+    "genome_ref",
+    "annotation_id",
     "bam_file_path",
     "data_quality_level",
     "original_median",
@@ -44,144 +41,124 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "platform",
     "source",
     "external_source_date",
-    "processing_comments",
-    "tool_opts"
+    "processing_comments"
 })
 public class UploadExpressionParams {
 
     @JsonProperty("destination_ref")
-    private java.lang.String destinationRef;
+    private String destinationRef;
     @JsonProperty("source_dir")
-    private java.lang.String sourceDir;
+    private String sourceDir;
     @JsonProperty("alignment_ref")
-    private java.lang.String alignmentRef;
-    @JsonProperty("tool_used")
-    private java.lang.String toolUsed;
-    @JsonProperty("tool_version")
-    private java.lang.String toolVersion;
-    @JsonProperty("annotation_ref")
-    private java.lang.String annotationRef;
+    private String alignmentRef;
+    @JsonProperty("genome_ref")
+    private String genomeRef;
+    @JsonProperty("annotation_id")
+    private String annotationId;
     @JsonProperty("bam_file_path")
-    private java.lang.String bamFilePath;
+    private String bamFilePath;
     @JsonProperty("data_quality_level")
     private Long dataQualityLevel;
     @JsonProperty("original_median")
     private Double originalMedian;
     @JsonProperty("description")
-    private java.lang.String description;
+    private String description;
     @JsonProperty("platform")
-    private java.lang.String platform;
+    private String platform;
     @JsonProperty("source")
-    private java.lang.String source;
+    private String source;
     @JsonProperty("external_source_date")
-    private java.lang.String externalSourceDate;
+    private String externalSourceDate;
     @JsonProperty("processing_comments")
-    private java.lang.String processingComments;
-    @JsonProperty("tool_opts")
-    private Map<String, String> toolOpts;
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private String processingComments;
+    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("destination_ref")
-    public java.lang.String getDestinationRef() {
+    public String getDestinationRef() {
         return destinationRef;
     }
 
     @JsonProperty("destination_ref")
-    public void setDestinationRef(java.lang.String destinationRef) {
+    public void setDestinationRef(String destinationRef) {
         this.destinationRef = destinationRef;
     }
 
-    public UploadExpressionParams withDestinationRef(java.lang.String destinationRef) {
+    public UploadExpressionParams withDestinationRef(String destinationRef) {
         this.destinationRef = destinationRef;
         return this;
     }
 
     @JsonProperty("source_dir")
-    public java.lang.String getSourceDir() {
+    public String getSourceDir() {
         return sourceDir;
     }
 
     @JsonProperty("source_dir")
-    public void setSourceDir(java.lang.String sourceDir) {
+    public void setSourceDir(String sourceDir) {
         this.sourceDir = sourceDir;
     }
 
-    public UploadExpressionParams withSourceDir(java.lang.String sourceDir) {
+    public UploadExpressionParams withSourceDir(String sourceDir) {
         this.sourceDir = sourceDir;
         return this;
     }
 
     @JsonProperty("alignment_ref")
-    public java.lang.String getAlignmentRef() {
+    public String getAlignmentRef() {
         return alignmentRef;
     }
 
     @JsonProperty("alignment_ref")
-    public void setAlignmentRef(java.lang.String alignmentRef) {
+    public void setAlignmentRef(String alignmentRef) {
         this.alignmentRef = alignmentRef;
     }
 
-    public UploadExpressionParams withAlignmentRef(java.lang.String alignmentRef) {
+    public UploadExpressionParams withAlignmentRef(String alignmentRef) {
         this.alignmentRef = alignmentRef;
         return this;
     }
 
-    @JsonProperty("tool_used")
-    public java.lang.String getToolUsed() {
-        return toolUsed;
+    @JsonProperty("genome_ref")
+    public String getGenomeRef() {
+        return genomeRef;
     }
 
-    @JsonProperty("tool_used")
-    public void setToolUsed(java.lang.String toolUsed) {
-        this.toolUsed = toolUsed;
+    @JsonProperty("genome_ref")
+    public void setGenomeRef(String genomeRef) {
+        this.genomeRef = genomeRef;
     }
 
-    public UploadExpressionParams withToolUsed(java.lang.String toolUsed) {
-        this.toolUsed = toolUsed;
+    public UploadExpressionParams withGenomeRef(String genomeRef) {
+        this.genomeRef = genomeRef;
         return this;
     }
 
-    @JsonProperty("tool_version")
-    public java.lang.String getToolVersion() {
-        return toolVersion;
+    @JsonProperty("annotation_id")
+    public String getAnnotationId() {
+        return annotationId;
     }
 
-    @JsonProperty("tool_version")
-    public void setToolVersion(java.lang.String toolVersion) {
-        this.toolVersion = toolVersion;
+    @JsonProperty("annotation_id")
+    public void setAnnotationId(String annotationId) {
+        this.annotationId = annotationId;
     }
 
-    public UploadExpressionParams withToolVersion(java.lang.String toolVersion) {
-        this.toolVersion = toolVersion;
-        return this;
-    }
-
-    @JsonProperty("annotation_ref")
-    public java.lang.String getAnnotationRef() {
-        return annotationRef;
-    }
-
-    @JsonProperty("annotation_ref")
-    public void setAnnotationRef(java.lang.String annotationRef) {
-        this.annotationRef = annotationRef;
-    }
-
-    public UploadExpressionParams withAnnotationRef(java.lang.String annotationRef) {
-        this.annotationRef = annotationRef;
+    public UploadExpressionParams withAnnotationId(String annotationId) {
+        this.annotationId = annotationId;
         return this;
     }
 
     @JsonProperty("bam_file_path")
-    public java.lang.String getBamFilePath() {
+    public String getBamFilePath() {
         return bamFilePath;
     }
 
     @JsonProperty("bam_file_path")
-    public void setBamFilePath(java.lang.String bamFilePath) {
+    public void setBamFilePath(String bamFilePath) {
         this.bamFilePath = bamFilePath;
     }
 
-    public UploadExpressionParams withBamFilePath(java.lang.String bamFilePath) {
+    public UploadExpressionParams withBamFilePath(String bamFilePath) {
         this.bamFilePath = bamFilePath;
         return this;
     }
@@ -217,108 +194,93 @@ public class UploadExpressionParams {
     }
 
     @JsonProperty("description")
-    public java.lang.String getDescription() {
+    public String getDescription() {
         return description;
     }
 
     @JsonProperty("description")
-    public void setDescription(java.lang.String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    public UploadExpressionParams withDescription(java.lang.String description) {
+    public UploadExpressionParams withDescription(String description) {
         this.description = description;
         return this;
     }
 
     @JsonProperty("platform")
-    public java.lang.String getPlatform() {
+    public String getPlatform() {
         return platform;
     }
 
     @JsonProperty("platform")
-    public void setPlatform(java.lang.String platform) {
+    public void setPlatform(String platform) {
         this.platform = platform;
     }
 
-    public UploadExpressionParams withPlatform(java.lang.String platform) {
+    public UploadExpressionParams withPlatform(String platform) {
         this.platform = platform;
         return this;
     }
 
     @JsonProperty("source")
-    public java.lang.String getSource() {
+    public String getSource() {
         return source;
     }
 
     @JsonProperty("source")
-    public void setSource(java.lang.String source) {
+    public void setSource(String source) {
         this.source = source;
     }
 
-    public UploadExpressionParams withSource(java.lang.String source) {
+    public UploadExpressionParams withSource(String source) {
         this.source = source;
         return this;
     }
 
     @JsonProperty("external_source_date")
-    public java.lang.String getExternalSourceDate() {
+    public String getExternalSourceDate() {
         return externalSourceDate;
     }
 
     @JsonProperty("external_source_date")
-    public void setExternalSourceDate(java.lang.String externalSourceDate) {
+    public void setExternalSourceDate(String externalSourceDate) {
         this.externalSourceDate = externalSourceDate;
     }
 
-    public UploadExpressionParams withExternalSourceDate(java.lang.String externalSourceDate) {
+    public UploadExpressionParams withExternalSourceDate(String externalSourceDate) {
         this.externalSourceDate = externalSourceDate;
         return this;
     }
 
     @JsonProperty("processing_comments")
-    public java.lang.String getProcessingComments() {
+    public String getProcessingComments() {
         return processingComments;
     }
 
     @JsonProperty("processing_comments")
-    public void setProcessingComments(java.lang.String processingComments) {
+    public void setProcessingComments(String processingComments) {
         this.processingComments = processingComments;
     }
 
-    public UploadExpressionParams withProcessingComments(java.lang.String processingComments) {
+    public UploadExpressionParams withProcessingComments(String processingComments) {
         this.processingComments = processingComments;
-        return this;
-    }
-
-    @JsonProperty("tool_opts")
-    public Map<String, String> getToolOpts() {
-        return toolOpts;
-    }
-
-    @JsonProperty("tool_opts")
-    public void setToolOpts(Map<String, String> toolOpts) {
-        this.toolOpts = toolOpts;
-    }
-
-    public UploadExpressionParams withToolOpts(Map<String, String> toolOpts) {
-        this.toolOpts = toolOpts;
         return this;
     }
 
     @JsonAnyGetter
-    public Map<java.lang.String, Object> getAdditionalProperties() {
+    public Map<String, Object> getAdditionalProperties() {
         return this.additionalProperties;
     }
 
     @JsonAnySetter
-    public void setAdditionalProperties(java.lang.String name, Object value) {
+    public void setAdditionalProperties(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
 
     @Override
-    public java.lang.String toString() {
-        return ((((((((((((((((((((((((((((((((("UploadExpressionParams"+" [destinationRef=")+ destinationRef)+", sourceDir=")+ sourceDir)+", alignmentRef=")+ alignmentRef)+", toolUsed=")+ toolUsed)+", toolVersion=")+ toolVersion)+", annotationRef=")+ annotationRef)+", bamFilePath=")+ bamFilePath)+", dataQualityLevel=")+ dataQualityLevel)+", originalMedian=")+ originalMedian)+", description=")+ description)+", platform=")+ platform)+", source=")+ source)+", externalSourceDate=")+ externalSourceDate)+", processingComments=")+ processingComments)+", toolOpts=")+ toolOpts)+", additionalProperties=")+ additionalProperties)+"]");
+    public String toString() {
+        return ((((((((((((((((((((((((((((("UploadExpressionParams"+" [destinationRef=")+ destinationRef)+", sourceDir=")+ sourceDir)+", alignmentRef=")+ alignmentRef)+", genomeRef=")+ genomeRef)+", annotationId=")+ annotationId)+", bamFilePath=")+ bamFilePath)+", dataQualityLevel=")+ dataQualityLevel)+", originalMedian=")+ originalMedian)+", description=")+ description)+", platform=")+ platform)+", source=")+ source)+", externalSourceDate=")+ externalSourceDate)+", processingComments=")+ processingComments)+", additionalProperties=")+ additionalProperties)+"]");
     }
 
 }

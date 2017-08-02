@@ -9,7 +9,7 @@ import time as _time
 import requests as _requests
 import threading as _threading
 import hashlib
-
+from pprint import pprint
 
 class TokenCache(object):
     ''' A basic cache for tokens. '''
@@ -64,8 +64,10 @@ class KBaseAuth(object):
         Constructor
         '''
         self._authurl = auth_url
+        #print('AAAAAAUTH_URL:  ' + self._authurl)
         if not self._authurl:
             self._authurl = self._LOGIN_URL
+            print('LLLLLOGIN_URL:  ' + self._authurl)
         self._cache = TokenCache()
 
     def get_user(self, token):
@@ -77,14 +79,20 @@ class KBaseAuth(object):
 
         d = {'token': token, 'fields': 'user_id'}
         ret = _requests.post(self._authurl, data=d)
+        print('+++++++++++++++++++++   RET ')
+        pprint(ret)
+        print('+++++++++++++++++++++  END OF RET ')
         if not ret.ok:
             try:
                 err = ret.json()
+                print('????????????????????????   ERR ')
+                pprint(err)
+                print('????????????????????????  END OF ERR ')
             except:
                 ret.raise_for_status()
             raise ValueError('Error connecting to auth service: {} {}\n{}'
-                             .format(ret.status_code, ret.reason,
-                                     err['error']['message']))
+                                .format(ret.status_code, ret.reason,
+                                     err['error_msg']))
 
         user = ret.json()['user_id']
         self._cache.add_valid_token(token, user)

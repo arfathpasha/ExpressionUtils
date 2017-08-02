@@ -345,6 +345,10 @@ class Application(object):
                              name='ExpressionUtils.export_expression',
                              types=[dict])
         self.method_authentication['ExpressionUtils.export_expression'] = 'required'  # noqa
+        self.rpc_service.add(impl_ExpressionUtils.get_expressionMatrix,
+                             name='ExpressionUtils.get_expressionMatrix',
+                             types=[dict])
+        self.method_authentication['ExpressionUtils.get_expressionMatrix'] = 'required'  # noqa
         self.rpc_service.add(impl_ExpressionUtils.status,
                              name='ExpressionUtils.status',
                              types=[dict])
